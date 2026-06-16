@@ -1,0 +1,187 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { motion } from "motion/react";
+import { Volume2, MessageCircleQuestion } from "lucide-react";
+import { phonemes, type Position } from "@/lib/data/phonemes";
+import { speak } from "@/lib/speech";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+export const Route = createFileRoute("/fonemas")({
+  head: () => ({
+    meta: [
+      { title: "Banco de Fonemas — Comunicar+" },
+      { name: "description", content: "Treine fonemas com palavras do cotidiano e pictogramas." },
+    ],
+  }),
+  component: PhonemesPage,
+});
+
+const positions: { key: Position | "todas"; label: string }[] = [
+  { key: "todas", label: "Todas" },
+  { key: "inicio", label: "Início" },
+  { key: "meio", label: "Meio" },
+  { key: "fim", label: "Fim" },
+];
+
+function PhonemesPage() {
+  const [selectedId, setSelectedId] = useState(phonemes[0].id);
+  const [position, setPosition] = useState<Position | "todas">("todas");
+  const [openMouth, setOpenMouth] = useState(false);
+
+  const selected = useMemo(
+    () => phonemes.find((p) => p.id === selectedId)!,
+    [selectedId],
+  );
+  const filtered = useMemo(
+    () => (position === "todas" ? selected.words : selected.words.filter((w) => w.position === position)),
+    [selected, position],
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold sm:text-4xl">Banco de Fonemas</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Escolha um som, ouça e veja como mexer a boca.
+        </p>
+      </header>
+
+      <section aria-label="Escolha do fonema" className="mb-6">
+        <h2 className="sr-only">Fonemas</h2>
+        <div className="flex flex-wrap gap-3">
+          {phonemes.map((p) => {
+            const active = p.id === selectedId;
+            return (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setSelectedId(p.id);
+                  setPosition("todas");
+                }}
+                aria-pressed={active}
+                className="big-tap relative grid h-16 w-16 place-items-center rounded-2xl border-2 text-2xl font-bold transition-transform hover:scale-105"
+                style={{
+                  background: active ? p.color : "var(--card)",
+                  borderColor: p.color,
+                  color: active ? "white" : "inherit",
+                }}
+              >
+                {p.letter}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mb-6 flex flex-wrap items-center gap-3">
+        <span className="text-base font-semibold">Posição do som:</span>
+        {positions.map((p) => (
+          <Button
+            key={p.key}
+            variant={position === p.key ? "default" : "outline"}
+            onClick={() => setPosition(p.key)}
+            className="h-12 rounded-2xl px-5 text-base"
+          >
+            {p.label}
+          </Button>
+        ))}
+        <Button
+          variant="secondary"
+          onClick={() => setOpenMouth(true)}
+          className="ml-auto h-12 rounded-2xl px-5 text-base"
+        >
+          <MessageCircleQuestion className="mr-2 h-5 w-5" />
+          Como mexer a boca?
+        </Button>
+      </section>
+
+      <motion.div
+        key={selected.id + position}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {filtered.length === 0 && (
+          <p className="col-span-full rounded-2xl bg-muted p-6 text-center text-muted-foreground">
+            Nenhuma palavra com o som nessa posição. Tente outra!
+          </p>
+        )}
+        {filtered.map((w) => (
+          <Card key={w.word} className="overflow-hidden p-0">
+            <div
+              className="grid h-40 place-items-center text-7xl"
+              style={{ background: selected.color + "22" }}
+              aria-hidden="true"
+            >
+              {w.emoji}
+            </div>
+            <div className="space-y-3 p-5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-display text-3xl font-bold tracking-wide">{w.word}</p>
+                <Badge variant="secondary" className="text-xs">
+                  {w.position === "inicio" ? "Início" : w.position === "meio" ? "Meio" : "Fim"}
+                </Badge>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => speak(w.word)}
+                  className="h-12 flex-1 rounded-2xl text-base"
+                  style={{ background: selected.color, color: "white" }}
+                >
+                  <Volume2 className="mr-2 h-5 w-5" /> Ouvir
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setOpenMouth(true)}
+                  className="h-12 rounded-2xl"
+                  aria-label={`Como mexer a boca para ${selected.letter}`}
+                >
+                  👄
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </motion.div>
+
+      <Dialog open={openMouth} onOpenChange={setOpenMouth}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              Como mexer a boca — {selected.name}
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              {selected.mouthInstruction}
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className="my-4 grid h-48 place-items-center rounded-3xl text-8xl"
+            style={{ background: selected.color + "22" }}
+            aria-hidden="true"
+          >
+            👄
+          </div>
+          <p className="rounded-2xl bg-warm/30 p-4 text-base">
+            <strong>Dica:</strong> {selected.mouthTip}
+          </p>
+          <Button
+            onClick={() => speak(selected.letter + "a, " + selected.letter + "e, " + selected.letter + "i", { rate: 0.7 })}
+            className="h-12 rounded-2xl text-base"
+          >
+            <Volume2 className="mr-2 h-5 w-5" />
+            Ouvir o som
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
