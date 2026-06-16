@@ -1,0 +1,108 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { motion } from "motion/react";
+import { Check } from "lucide-react";
+import { mascots, themeColors, useApp, type ThemeColor } from "@/context/AppContext";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/personalizar")({
+  head: () => ({
+    meta: [
+      { title: "Personalizar — Comunicar+" },
+      { name: "description", content: "Escolha mascote e cores da interface." },
+    ],
+  }),
+  component: CustomizePage,
+});
+
+function CustomizePage() {
+  const { mascot, setMascotId, themeColor, setThemeColor, resetProgress } = useApp();
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold sm:text-4xl">Personalizar</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Escolha o mascote guia e a cor da interface.
+        </p>
+      </header>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-xl font-bold">Mascote guia</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {mascots.map((m) => {
+            const active = m.id === mascot.id;
+            return (
+              <motion.button
+                key={m.id}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setMascotId(m.id)}
+                aria-pressed={active}
+                className={
+                  "rounded-3xl border-2 p-6 text-center transition-all " +
+                  (active
+                    ? "border-primary bg-primary/10 shadow-md"
+                    : "border-border bg-card hover:border-primary/50")
+                }
+              >
+                <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-background text-6xl">
+                  {m.emoji}
+                </div>
+                <p className="mt-3 font-display text-xl font-bold">{m.name}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{m.greeting}</p>
+                {active && (
+                  <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground">
+                    <Check className="h-4 w-4" /> Selecionado
+                  </div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-xl font-bold">Cor de destaque</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          {(Object.keys(themeColors) as ThemeColor[]).map((k) => {
+            const c = themeColors[k];
+            const active = themeColor === k;
+            return (
+              <button
+                key={k}
+                onClick={() => setThemeColor(k)}
+                aria-pressed={active}
+                className={
+                  "big-tap flex flex-col items-center gap-2 rounded-3xl border-2 p-4 transition-all " +
+                  (active ? "border-foreground" : "border-border hover:border-foreground/50")
+                }
+              >
+                <div
+                  className="h-14 w-14 rounded-2xl"
+                  style={{ background: c.primary }}
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-semibold">{c.label}</span>
+                {active && <Check className="h-4 w-4" />}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <Card className="p-6">
+        <h2 className="text-xl font-bold">Sessão</h2>
+        <p className="mt-1 text-muted-foreground">
+          O progresso fica apenas na memória desta sessão e é zerado ao atualizar a página.
+        </p>
+        <Button
+          variant="outline"
+          onClick={resetProgress}
+          className="mt-4 h-12 rounded-2xl px-5 text-base"
+        >
+          Zerar estrelinhas agora
+        </Button>
+      </Card>
+    </div>
+  );
+}
