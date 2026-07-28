@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { motion } from "motion/react";
-import { Volume2, PartyPopper } from "lucide-react";
+import { Volume2, PartyPopper, Mic } from "lucide-react";
 import { tongueTwisters } from "@/lib/data/tongueTwisters";
-import { speak } from "@/lib/speech";
+import { speak, listenOnce, matchesPhrase, playRetry } from "@/lib/speech";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { useApp } from "@/context/AppContext";
 export const Route = createFileRoute("/desafios")({
   head: () => ({
     meta: [
-      { title: "Desafios e Trava-Línguas — Comunicar+" },
+      { title: "Desafios e Trava-Línguas — Comunicando+" },
       { name: "description", content: "Trava-línguas e frases funcionais com celebração." },
     ],
   }),
@@ -24,6 +24,8 @@ function ChallengesPage() {
   const { addStars } = useApp();
   const [filter, setFilter] = useState<"todas" | "trava" | "frase">("todas");
   const [done, setDone] = useState<Record<string, boolean>>({});
+  const [listeningId, setListeningId] = useState<string | null>(null);
+  const [semSuporte, setSemSuporte] = useState(false);
 
   const list = tongueTwisters.filter((t) => filter === "todas" || t.type === filter);
 
@@ -47,21 +49,46 @@ function ChallengesPage() {
     addStars("desafios", 1);
   };
 
+  const ouvirEVerificar = (t: (typeof tongueTwisters)[number]) => {
+    if (listeningId) return;
+    setListeningId(t.id);
+    const started = listenOnce({
+      onResult: (transcript) => {
+        if (matchesPhrase(transcript, t.text)) {
+          celebrate(t.id);
+        } else {
+          playRetry();
+        }
+      },
+      onEnd: () => setListeningId(null),
+    });
+    if (!started) {
+      setListeningId(null);
+      setSemSuporte(true);
+    }
+  };
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-3xl font-bold sm:text-4xl">Desafios e Trava-Línguas</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Ouça, repita e celebre cada conquista!
-        </p>
+        <p className="mt-2 text-lg text-muted-foreground">Ouça, repita e celebre cada conquista!</p>
+        {semSuporte && (
+          <p className="mt-2 rounded-xl bg-warm/30 px-3 py-2 text-sm">
+            Seu navegador não suporta reconhecimento de voz. Tente no Chrome do computador ou
+            celular.
+          </p>
+        )}
       </header>
 
       <div className="mb-6 flex flex-wrap gap-2">
-        {([
-          { k: "todas", l: "Todas" },
-          { k: "trava", l: "Trava-Línguas" },
-          { k: "frase", l: "Frases do dia a dia" },
-        ] as const).map((b) => (
+        {(
+          [
+            { k: "todas", l: "Todas" },
+            { k: "trava", l: "Trava-Línguas" },
+            { k: "frase", l: "Frases do dia a dia" },
+          ] as const
+        ).map((b) => (
           <Button
             key={b.k}
             variant={filter === b.k ? "default" : "outline"}
@@ -114,11 +141,23 @@ function ChallengesPage() {
                   <Volume2 className="mr-2 h-5 w-5" /> Ouvir
                 </Button>
                 <Button
-                  onClick={() => celebrate(t.id)}
+                  onClick={() => ouvirEVerificar(t)}
+                  disabled={listeningId === t.id}
                   className="h-12 flex-1 rounded-2xl text-base"
                 >
-                  <PartyPopper className="mr-2 h-5 w-5" />
-                  Gravei e Consegui!
+                  {listeningId === t.id ? (
+                    <>
+                      <Mic className="mr-2 h-5 w-5 animate-pulse text-red-500" /> Ouvindo...
+                    </>
+                  ) : done[t.id] ? (
+                    <>
+                      <PartyPopper className="mr-2 h-5 w-5" /> Consegui! Falar de novo
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="mr-2 h-5 w-5" /> Falar e verificar
+                    </>
+                  )}
                 </Button>
               </div>
             </Card>

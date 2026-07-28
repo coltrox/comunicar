@@ -28,17 +28,19 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-3">
+      <SidebarHeader className="border-b border-sidebar-border p-0">
+        <div className="flex items-center gap-3 overflow-hidden px-3 py-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <div
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-3xl"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-xl"
             style={{ background: "var(--primary-soft)" }}
             aria-hidden="true"
           >
             {mascot.emoji}
           </div>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="font-display text-lg font-bold leading-tight">Comunicar+</p>
+            <p className="truncate font-display text-lg font-bold leading-tight">
+              Comunicando<span className="ml-1">+</span>
+            </p>
             <p className="truncate text-xs text-muted-foreground">{mascot.name}</p>
           </div>
         </div>

@@ -1,15 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Mic, BookOpen, Brain, Sparkles, Star } from "lucide-react";
+import { Mic, BookOpen, Brain, Sparkles, Star, Flame } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Comunicar+ — Início" },
-      { name: "description", content: "Escolha uma atividade de fala, vocabulário, memória ou desafios." },
+      { title: "Comunicando+ — Início" },
+      {
+        name: "description",
+        content: "Escolha uma atividade de fala, vocabulário, memória ou desafios.",
+      },
     ],
   }),
   component: Dashboard,
@@ -47,8 +51,10 @@ const shortcuts = [
 ] as const;
 
 function Dashboard() {
-  const { mascot, starsByArea } = useApp();
+  const { mascot, starsByArea, dailyGoal, dailyStars, streak } = useApp();
   const totalStars = Object.values(starsByArea).reduce((a, b) => a + b, 0);
+  const goalReached = dailyStars >= dailyGoal;
+  const dailyPct = Math.min(100, Math.round((dailyStars / dailyGoal) * 100));
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-12">
@@ -85,6 +91,38 @@ function Dashboard() {
           </div>
         </div>
       </motion.section>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <Card className="p-5">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-base font-bold">Meta diária</h3>
+            <span className="text-sm font-semibold text-muted-foreground">
+              {Math.min(dailyStars, dailyGoal)} / {dailyGoal} ⭐
+            </span>
+          </div>
+          <Progress value={dailyPct} className="mt-3" />
+          <p className="mt-2 text-sm text-muted-foreground">
+            {goalReached
+              ? "Meta de hoje concluída! 🎉"
+              : `Faltam ${dailyGoal - dailyStars} estrelinha${dailyGoal - dailyStars === 1 ? "" : "s"} para hoje.`}
+          </p>
+        </Card>
+        <Card className="flex items-center gap-4 p-5">
+          <div
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl"
+            style={{ background: "var(--primary-soft)" }}
+            aria-hidden="true"
+          >
+            <Flame className="h-7 w-7 fill-warm text-warm" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-none">
+              {streak} {streak === 1 ? "dia" : "dias"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">seguidos batendo a meta</p>
+          </div>
+        </Card>
+      </div>
 
       <h2 className="mt-10 mb-4 text-2xl font-bold">O que vamos praticar hoje?</h2>
       <div className="grid gap-5 sm:grid-cols-2">

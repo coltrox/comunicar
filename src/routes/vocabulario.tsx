@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/vocabulario")({
   head: () => ({
     meta: [
-      { title: "Vocabulário — Comunicar+" },
+      { title: "Vocabulário — Comunicando+" },
       { name: "description", content: "Explore palavras e suas partes com pictogramas e áudio." },
     ],
   }),

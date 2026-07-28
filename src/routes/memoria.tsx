@@ -13,7 +13,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/memoria")({
   head: () => ({
     meta: [
-      { title: "Memória Auditiva — Comunicar+" },
+      { title: "Memória Auditiva — Comunicando+" },
       { name: "description", content: "Jogo de memória auditiva com progressão por níveis." },
     ],
   }),
@@ -49,7 +49,10 @@ function MemoryPage() {
 
   const startRound = () => {
     const pool = level.items;
-    const seq: MemoryItem[] = Array.from({ length: targetLen }, () => pool[Math.floor(Math.random() * pool.length)]);
+    const seq: MemoryItem[] = Array.from(
+      { length: targetLen },
+      () => pool[Math.floor(Math.random() * pool.length)],
+    );
     setSequence(seq);
     setUserIdx(0);
     setPhase("playing");
@@ -114,7 +117,7 @@ function MemoryPage() {
 
       <section className="mb-6">
         <h2 className="mb-3 text-base font-semibold">Escolha o nível</h2>
-        <div className="grid gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {memoryLevels.map((l, i) => {
             const active = i === levelIdx;
             return (
@@ -197,13 +200,11 @@ function MemoryPage() {
                   onClick={() => handleTap(it)}
                   disabled={phase === "playing" || phase === "idle"}
                   animate={
-                    isHl
-                      ? { scale: [1, 1.08, 1], backgroundColor: "var(--primary)" }
-                      : { scale: 1 }
+                    isHl ? { scale: [1, 1.08, 1], backgroundColor: "var(--primary)" } : { scale: 1 }
                   }
                   transition={{ duration: 0.5 }}
                   className={
-                    "big-tap h-28 rounded-3xl border-2 font-display text-3xl font-bold transition-all " +
+                    "big-tap flex h-28 items-center justify-center break-words rounded-3xl border-2 p-2 text-center font-display text-lg font-bold leading-tight transition-all sm:text-2xl md:text-3xl " +
                     (isHl
                       ? "border-primary text-primary-foreground"
                       : "border-border bg-card text-foreground hover:border-primary disabled:opacity-50")

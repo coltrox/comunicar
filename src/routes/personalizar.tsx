@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Check } from "lucide-react";
+import { Check, Flame } from "lucide-react";
 import { mascots, themeColors, useApp, type ThemeColor } from "@/context/AppContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/personalizar")({
   head: () => ({
     meta: [
-      { title: "Personalizar — Comunicar+" },
+      { title: "Personalizar — Comunicando+" },
       { name: "description", content: "Escolha mascote e cores da interface." },
     ],
   }),
@@ -16,7 +16,8 @@ export const Route = createFileRoute("/personalizar")({
 });
 
 function CustomizePage() {
-  const { mascot, setMascotId, themeColor, setThemeColor, resetProgress } = useApp();
+  const { mascot, setMascotId, themeColor, setThemeColor, resetProgress, dailyGoal, streak } =
+    useApp();
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8">
@@ -63,7 +64,7 @@ function CustomizePage() {
 
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-bold">Cor de destaque</h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
           {(Object.keys(themeColors) as ThemeColor[]).map((k) => {
             const c = themeColors[k];
             const active = themeColor === k;
@@ -91,10 +92,20 @@ function CustomizePage() {
       </section>
 
       <Card className="p-6">
-        <h2 className="text-xl font-bold">Sessão</h2>
+        <h2 className="text-xl font-bold">Progresso</h2>
         <p className="mt-1 text-muted-foreground">
-          O progresso fica apenas na memória desta sessão e é zerado ao atualizar a página.
+          As estrelinhas ficam salvas neste navegador, mesmo se você fechar ou atualizar a página. A
+          meta diária é de {dailyGoal} estrelinhas e reseta todo dia.
         </p>
+        <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted px-4 py-3">
+          <Flame className="h-6 w-6 fill-warm text-warm" />
+          <p className="text-base">
+            <strong>
+              {streak} {streak === 1 ? "dia" : "dias"}
+            </strong>{" "}
+            seguidos batendo a meta diária.
+          </p>
+        </div>
         <Button
           variant="outline"
           onClick={resetProgress}

@@ -63,13 +63,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Comunicar+ — Apoio fonoaudiológico interativo" },
+      { title: "Comunicando+ — Apoio fonoaudiológico interativo" },
       {
         name: "description",
         content:
           "Plataforma acessível de treino de fala e linguagem para pessoas com Síndrome de Down e dificuldades de comunicação.",
       },
-      { property: "og:title", content: "Comunicar+" },
+      { property: "og:title", content: "Comunicando+" },
       {
         property: "og:description",
         content: "Treino de fala, vocabulário e ritmo de forma lúdica e acessível.",
@@ -119,7 +119,9 @@ function RootComponent() {
               <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md">
                 <SidebarTrigger className="big-tap" />
                 <div className="min-w-0">
-                  <p className="font-display text-lg font-bold leading-none">Comunicar+</p>
+                  <p className="font-display text-lg font-bold leading-none">
+                    Comunicando<span className="ml-1">+</span>
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     Apoio fonoaudiológico interativo
                   </p>
