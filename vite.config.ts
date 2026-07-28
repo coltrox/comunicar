@@ -12,4 +12,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Outside the Lovable sandbox (e.g. Vercel's own build), nitro is skipped by
+  // default and produces a Vite-only build with no server routes — which is
+  // why the deployed site 404s. Hard-pin the Vercel preset so `vite build`
+  // always emits Vercel's serverless output, in Lovable or out of it.
+  nitro: { preset: "vercel" },
 });
