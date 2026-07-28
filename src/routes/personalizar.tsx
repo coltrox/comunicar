@@ -5,6 +5,12 @@ import { mascots, themeColors, useApp, type ThemeColor } from "@/context/AppCont
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+const difficultyStyles: Record<string, string> = {
+  Fácil: "bg-success/15 text-success",
+  Médio: "bg-warm/50 text-warm-foreground",
+  Difícil: "bg-destructive/15 text-destructive",
+};
+
 export const Route = createFileRoute("/personalizar")({
   head: () => ({
     meta: [
@@ -30,6 +36,9 @@ function CustomizePage() {
 
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-bold">Mascote guia</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Cada mascote tem uma dificuldade — ela define a meta diária de estrelinhas.
+        </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {mascots.map((m) => {
             const active = m.id === mascot.id;
@@ -50,7 +59,17 @@ function CustomizePage() {
                   {m.emoji}
                 </div>
                 <p className="mt-3 font-display text-xl font-bold">{m.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{m.greeting}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{m.tagline}</p>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                  <span
+                    className={
+                      "rounded-full px-2 py-0.5 text-xs font-bold " + difficultyStyles[m.difficulty]
+                    }
+                  >
+                    {m.difficulty}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{m.dailyGoal} ⭐/dia</span>
+                </div>
                 {active && (
                   <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground">
                     <Check className="h-4 w-4" /> Selecionado
@@ -95,7 +114,8 @@ function CustomizePage() {
         <h2 className="text-xl font-bold">Progresso</h2>
         <p className="mt-1 text-muted-foreground">
           As estrelinhas ficam salvas neste navegador, mesmo se você fechar ou atualizar a página. A
-          meta diária é de {dailyGoal} estrelinhas e reseta todo dia.
+          meta diária de hoje é {dailyGoal} estrelinhas em cada atividade (Banco de Fonemas,
+          Memória Auditiva e Trava-Línguas) — definida pelo mascote escolhido — e reseta todo dia.
         </p>
         <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted px-4 py-3">
           <Flame className="h-6 w-6 fill-warm text-warm" />

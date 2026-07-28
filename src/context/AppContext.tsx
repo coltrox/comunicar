@@ -8,12 +8,41 @@ export interface Mascot {
   name: string;
   emoji: string;
   greeting: string;
+  /** Stars needed per day when this mascot is the guide — also its difficulty. */
+  dailyGoal: number;
+  difficulty: "Fácil" | "Médio" | "Difícil";
+  /** Punchy one-liner explaining the mascot's personality and why it's this hard. */
+  tagline: string;
 }
 
 export const mascots: Mascot[] = [
-  { id: "leo", name: "Léo, o Leão", emoji: "🦁", greeting: "Roar! Vamos brincar de falar?" },
-  { id: "nina", name: "Nina, a Coelha", emoji: "🐰", greeting: "Oi! Pronta para pular nos sons?" },
-  { id: "tito", name: "Tito, o Tucano", emoji: "🦜", greeting: "Olá! Bora soltar a voz?" },
+  {
+    id: "nina",
+    name: "Nina, a Coelha",
+    emoji: "🐰",
+    greeting: "Oi! Pronta para pular nos sons?",
+    dailyGoal: 2,
+    difficulty: "Fácil",
+    tagline: "Nina é gentil e calma — no ritmo dela, sem pressa nenhuma.",
+  },
+  {
+    id: "tito",
+    name: "Tito, o Tucano",
+    emoji: "🦜",
+    greeting: "Olá! Bora soltar a voz?",
+    dailyGoal: 4,
+    difficulty: "Médio",
+    tagline: "Tito é esperto e cheio de energia — pronto pra voar mais alto.",
+  },
+  {
+    id: "leo",
+    name: "Léo, o Leão",
+    emoji: "🦁",
+    greeting: "Roar! Vamos brincar de falar?",
+    dailyGoal: 6,
+    difficulty: "Difícil",
+    tagline: "Léo é bravo e corajoso — só encara quem não tem medo do desafio!",
+  },
 ];
 
 export const themeColors: Record<
@@ -52,6 +81,13 @@ export const themeColors: Record<
   },
 };
 
+/** Areas that count toward the daily goal — ids match the `area` used in addStars(). */
+export const PRACTICE_AREAS = [
+  { id: "fonemas", label: "Banco de Fonemas" },
+  { id: "memoria", label: "Memória Auditiva" },
+  { id: "desafios", label: "Trava-Línguas" },
+] as const;
+
 interface AppContextValue {
   mascot: Mascot;
   setMascotId: (id: MascotId) => void;
@@ -61,22 +97,26 @@ interface AppContextValue {
   starsByArea: Record<string, number>;
   addStars: (area: string, n: number) => void;
   resetProgress: () => void;
-  // daily goal + streak
+  // daily goal + streak: each practice area needs `dailyGoal` stars, and
+  // `dailyGoal` comes from the chosen mascot's difficulty.
   dailyGoal: number;
-  dailyStars: number;
+  dailyStarsByArea: Record<string, number>;
   streak: number;
+  // first-run mascot/goal setup
+  needsSetup: boolean;
+  completeSetup: (id: MascotId) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 const STARS_STORAGE_KEY = "comunicando-plus:stars";
 const DAILY_STORAGE_KEY = "comunicando-plus:daily";
-export const DAILY_GOAL = 5;
+const MASCOT_STORAGE_KEY = "comunicando-plus:mascot";
 
 interface DailyProgress {
   date: string;
-  stars: number;
-  goalMet: boolean;
+  stars: Record<string, number>;
+  goalMetAreas: Record<string, boolean>;
   streak: number;
   lastGoalDate: string | null;
 }
@@ -92,7 +132,7 @@ function dayBefore(date: string) {
 }
 
 function freshDaily(today: string, streak = 0, lastGoalDate: string | null = null): DailyProgress {
-  return { date: today, stars: 0, goalMet: false, streak, lastGoalDate };
+  return { date: today, stars: {}, goalMetAreas: {}, streak, lastGoalDate };
 }
 
 function loadDaily(): DailyProgress {
@@ -111,8 +151,19 @@ function loadDaily(): DailyProgress {
   }
 }
 
+function loadMascotId(): MascotId | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = window.localStorage.getItem(MASCOT_STORAGE_KEY) as MascotId | null;
+    return saved && mascots.some((m) => m.id === saved) ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [mascotId, setMascotId] = useState<MascotId>("leo");
+  const [needsSetup, setNeedsSetup] = useState(() => loadMascotId() === null);
+  const [mascotId, setMascotId] = useState<MascotId>(() => loadMascotId() ?? "leo");
   const [themeColor, setThemeColor] = useState<ThemeColor>("teal");
   const [starsByArea, setStarsByArea] = useState<Record<string, number>>(() => {
     if (typeof window === "undefined") return {};
@@ -131,6 +182,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // ignore storage errors (e.g. private mode)
     }
   }, [starsByArea]);
+
+  useEffect(() => {
+    if (needsSetup) return;
+    try {
+      window.localStorage.setItem(MASCOT_STORAGE_KEY, mascotId);
+    } catch {
+      // ignore storage errors (e.g. private mode)
+    }
+  }, [mascotId, needsSetup]);
 
   const [daily, setDaily] = useState<DailyProgress>(loadDaily);
 
@@ -151,9 +211,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.style.setProperty("--ring", c.ring);
   }, [themeColor]);
 
+  const mascot = mascots.find((m) => m.id === mascotId)!;
+
   const value = useMemo<AppContextValue>(
     () => ({
-      mascot: mascots.find((m) => m.id === mascotId)!,
+      mascot,
       setMascotId,
       themeColor,
       setThemeColor,
@@ -164,14 +226,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const today = todayStr();
           // Guard against the app being left open across midnight.
           const base = d.date === today ? d : loadDaily();
-          const stars = base.stars + n;
-          const justMet = !base.goalMet && stars >= DAILY_GOAL;
+          const areaStars = (base.stars[area] ?? 0) + n;
+          const stars = { ...base.stars, [area]: areaStars };
+          const goalMetAreas = { ...base.goalMetAreas };
+          if (areaStars >= mascot.dailyGoal) goalMetAreas[area] = true;
+
+          const wasDayDone = PRACTICE_AREAS.every((a) => base.goalMetAreas[a.id]);
+          const isDayDoneNow = PRACTICE_AREAS.every((a) => goalMetAreas[a.id]);
+          const justFinishedDay = !wasDayDone && isDayDoneNow;
+
           return {
             date: today,
             stars,
-            goalMet: base.goalMet || stars >= DAILY_GOAL,
-            streak: justMet ? base.streak + 1 : base.streak,
-            lastGoalDate: justMet ? today : base.lastGoalDate,
+            goalMetAreas,
+            streak: justFinishedDay ? base.streak + 1 : base.streak,
+            lastGoalDate: justFinishedDay ? today : base.lastGoalDate,
           };
         });
       },
@@ -179,11 +248,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setStarsByArea({});
         setDaily(freshDaily(todayStr()));
       },
-      dailyGoal: DAILY_GOAL,
-      dailyStars: daily.stars,
+      dailyGoal: mascot.dailyGoal,
+      dailyStarsByArea: daily.stars,
       streak: daily.streak,
+      needsSetup,
+      completeSetup: (id) => {
+        setMascotId(id);
+        setNeedsSetup(false);
+        setDaily(freshDaily(todayStr()));
+      },
     }),
-    [mascotId, themeColor, starsByArea, daily],
+    [mascot, themeColor, starsByArea, daily, needsSetup],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/context/AppContext";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/desafios")({
   head: () => ({
@@ -58,6 +59,7 @@ function ChallengesPage() {
           celebrate(t.id);
         } else {
           playRetry();
+          toast("Quase! Vamos repetir até acertar.", { icon: "💪" });
         }
       },
       onEnd: () => setListeningId(null),

@@ -5,6 +5,7 @@ import { Volume2, MessageCircleQuestion, Star, Mic } from "lucide-react";
 import { phonemes, type Position } from "@/lib/data/phonemes";
 import { speak, listenOnce, matchesWord, playSuccess, playRetry } from "@/lib/speech";
 import { useApp } from "@/context/AppContext";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ function PhonemesPage() {
           playSuccess();
         } else {
           playRetry();
+          toast("Quase! Tente falar de novo.", { icon: "💪" });
         }
       },
       onEnd: () => setListeningWord(null),

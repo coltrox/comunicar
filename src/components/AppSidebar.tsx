@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useApp } from "@/context/AppContext";
 
@@ -25,6 +26,7 @@ const items = [
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { mascot } = useApp();
+  const { setOpenMobile } = useSidebar();
 
   return (
     <Sidebar collapsible="icon">
@@ -60,7 +62,7 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className="h-12 text-base"
                     >
-                      <Link to={item.url}>
+                      <Link to={item.url} onClick={() => setOpenMobile(false)}>
                         <item.icon className="!h-5 !w-5" />
                         <span>{item.title}</span>
                       </Link>
