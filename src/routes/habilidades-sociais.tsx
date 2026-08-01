@@ -21,7 +21,7 @@ export const Route = createFileRoute("/habilidades-sociais")({
 });
 
 function SocialSkillsPage() {
-  const { addStars } = useApp();
+  const { adicionarEstrelas } = useApp();
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [listeningId, setListeningId] = useState<string | null>(null);
   const [semSuporte, setSemSuporte] = useState(false);
@@ -43,7 +43,7 @@ function SocialSkillsPage() {
       250,
     );
     setDone((d) => ({ ...d, [id]: true }));
-    addStars("habilidades", 1);
+    adicionarEstrelas("habilidades", 1);
   };
 
   const ouvirEVerificar = (p: (typeof socialPhrases)[number]) => {

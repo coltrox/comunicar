@@ -81,7 +81,7 @@ export const themeColors: Record<
   },
 };
 
-/** Areas that count toward the daily goal — ids match the `area` used in addStars(). */
+/** Áreas que contam para a meta diária — os ids batem com o `area` usado em adicionarEstrelas(). */
 export const PRACTICE_AREAS = [
   { id: "fonemas", label: "Banco de Fonemas" },
   { id: "memoria", label: "Memória Auditiva" },
@@ -91,21 +91,21 @@ export const PRACTICE_AREAS = [
 
 interface AppContextValue {
   mascot: Mascot;
-  setMascotId: (id: MascotId) => void;
+  definirMascote: (id: MascotId) => void;
   themeColor: ThemeColor;
-  setThemeColor: (c: ThemeColor) => void;
-  // in-memory progress
+  definirCor: (c: ThemeColor) => void;
+  // progresso em memória
   starsByArea: Record<string, number>;
-  addStars: (area: string, n: number) => void;
-  resetProgress: () => void;
-  // daily goal + streak: each practice area needs `dailyGoal` stars, and
-  // `dailyGoal` comes from the chosen mascot's difficulty.
+  adicionarEstrelas: (area: string, n: number) => void;
+  reiniciarProgresso: () => void;
+  // meta diária + streak: cada área de prática precisa de `dailyGoal`
+  // estrelas, e `dailyGoal` vem da dificuldade do mascote escolhido.
   dailyGoal: number;
   dailyStarsByArea: Record<string, number>;
   streak: number;
-  // first-run mascot/goal setup
+  // configuração inicial de mascote/meta
   needsSetup: boolean;
-  completeSetup: (id: MascotId) => void;
+  concluirConfiguracao: (id: MascotId) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -122,49 +122,49 @@ interface DailyProgress {
   lastGoalDate: string | null;
 }
 
-function todayStr() {
+function dataDeHoje() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function dayBefore(date: string) {
-  const d = new Date(date + "T00:00:00");
+function diaAnterior(data: string) {
+  const d = new Date(data + "T00:00:00");
   d.setDate(d.getDate() - 1);
   return d.toISOString().slice(0, 10);
 }
 
-function freshDaily(today: string, streak = 0, lastGoalDate: string | null = null): DailyProgress {
-  return { date: today, stars: {}, goalMetAreas: {}, streak, lastGoalDate };
+function diarioNovo(hoje: string, streak = 0, lastGoalDate: string | null = null): DailyProgress {
+  return { date: hoje, stars: {}, goalMetAreas: {}, streak, lastGoalDate };
 }
 
-function loadDaily(): DailyProgress {
-  const today = todayStr();
-  if (typeof window === "undefined") return freshDaily(today);
+function carregarDiario(): DailyProgress {
+  const hoje = dataDeHoje();
+  if (typeof window === "undefined") return diarioNovo(hoje);
   try {
-    const saved = window.localStorage.getItem(DAILY_STORAGE_KEY);
-    const parsed: DailyProgress | null = saved ? JSON.parse(saved) : null;
-    if (!parsed) return freshDaily(today);
-    if (parsed.date === today) return parsed;
-    // New day: the streak only survives if yesterday's goal was met.
-    const streakContinues = parsed.lastGoalDate === dayBefore(today);
-    return freshDaily(today, streakContinues ? parsed.streak : 0, parsed.lastGoalDate);
+    const salvo = window.localStorage.getItem(DAILY_STORAGE_KEY);
+    const analisado: DailyProgress | null = salvo ? JSON.parse(salvo) : null;
+    if (!analisado) return diarioNovo(hoje);
+    if (analisado.date === hoje) return analisado;
+    // Novo dia: o streak só continua se a meta de ontem foi batida.
+    const streakContinua = analisado.lastGoalDate === diaAnterior(hoje);
+    return diarioNovo(hoje, streakContinua ? analisado.streak : 0, analisado.lastGoalDate);
   } catch {
-    return freshDaily(today);
+    return diarioNovo(hoje);
   }
 }
 
-function loadMascotId(): MascotId | null {
+function carregarMascoteId(): MascotId | null {
   if (typeof window === "undefined") return null;
   try {
-    const saved = window.localStorage.getItem(MASCOT_STORAGE_KEY) as MascotId | null;
-    return saved && mascots.some((m) => m.id === saved) ? saved : null;
+    const salvo = window.localStorage.getItem(MASCOT_STORAGE_KEY) as MascotId | null;
+    return salvo && mascots.some((m) => m.id === salvo) ? salvo : null;
   } catch {
     return null;
   }
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [needsSetup, setNeedsSetup] = useState(() => loadMascotId() === null);
-  const [mascotId, setMascotId] = useState<MascotId>(() => loadMascotId() ?? "leo");
+  const [needsSetup, setNeedsSetup] = useState(() => carregarMascoteId() === null);
+  const [mascotId, setMascotId] = useState<MascotId>(() => carregarMascoteId() ?? "leo");
   const [themeColor, setThemeColor] = useState<ThemeColor>("teal");
   const [starsByArea, setStarsByArea] = useState<Record<string, number>>(() => {
     if (typeof window === "undefined") return {};
@@ -193,7 +193,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [mascotId, needsSetup]);
 
-  const [daily, setDaily] = useState<DailyProgress>(loadDaily);
+  const [daily, setDaily] = useState<DailyProgress>(carregarDiario);
 
   useEffect(() => {
     try {
@@ -217,46 +217,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(
     () => ({
       mascot,
-      setMascotId,
+      definirMascote: setMascotId,
       themeColor,
-      setThemeColor,
+      definirCor: setThemeColor,
       starsByArea,
-      addStars: (area, n) => {
+      adicionarEstrelas: (area, n) => {
         setStarsByArea((p) => ({ ...p, [area]: (p[area] ?? 0) + n }));
         setDaily((d) => {
-          const today = todayStr();
-          // Guard against the app being left open across midnight.
-          const base = d.date === today ? d : loadDaily();
-          const areaStars = (base.stars[area] ?? 0) + n;
-          const stars = { ...base.stars, [area]: areaStars };
+          const hoje = dataDeHoje();
+          // Protege contra o app ficar aberto passando da meia-noite.
+          const base = d.date === hoje ? d : carregarDiario();
+          const estrelasArea = (base.stars[area] ?? 0) + n;
+          const stars = { ...base.stars, [area]: estrelasArea };
           const goalMetAreas = { ...base.goalMetAreas };
-          if (areaStars >= mascot.dailyGoal) goalMetAreas[area] = true;
+          if (estrelasArea >= mascot.dailyGoal) goalMetAreas[area] = true;
 
-          const wasDayDone = PRACTICE_AREAS.every((a) => base.goalMetAreas[a.id]);
-          const isDayDoneNow = PRACTICE_AREAS.every((a) => goalMetAreas[a.id]);
-          const justFinishedDay = !wasDayDone && isDayDoneNow;
+          const diaJaEstavaCompleto = PRACTICE_AREAS.every((a) => base.goalMetAreas[a.id]);
+          const diaEstaCompletoAgora = PRACTICE_AREAS.every((a) => goalMetAreas[a.id]);
+          const acabouDeCompletarODia = !diaJaEstavaCompleto && diaEstaCompletoAgora;
 
           return {
-            date: today,
+            date: hoje,
             stars,
             goalMetAreas,
-            streak: justFinishedDay ? base.streak + 1 : base.streak,
-            lastGoalDate: justFinishedDay ? today : base.lastGoalDate,
+            streak: acabouDeCompletarODia ? base.streak + 1 : base.streak,
+            lastGoalDate: acabouDeCompletarODia ? hoje : base.lastGoalDate,
           };
         });
       },
-      resetProgress: () => {
+      reiniciarProgresso: () => {
         setStarsByArea({});
-        setDaily(freshDaily(todayStr()));
+        setDaily(diarioNovo(dataDeHoje()));
       },
       dailyGoal: mascot.dailyGoal,
       dailyStarsByArea: daily.stars,
       streak: daily.streak,
       needsSetup,
-      completeSetup: (id) => {
+      concluirConfiguracao: (id) => {
         setMascotId(id);
         setNeedsSetup(false);
-        setDaily(freshDaily(todayStr()));
+        setDaily(diarioNovo(dataDeHoje()));
       },
     }),
     [mascot, themeColor, starsByArea, daily, needsSetup],

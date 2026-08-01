@@ -72,7 +72,7 @@ const difficultyStyles: Record<string, string> = {
 };
 
 function MascotSetupDialog() {
-  const { needsSetup, completeSetup } = useApp();
+  const { needsSetup, concluirConfiguracao } = useApp();
   const [selected, setSelected] = useState<MascotId>("nina");
   const chosen = mascots.find((m) => m.id === selected)!;
 
@@ -124,7 +124,7 @@ function MascotSetupDialog() {
         </div>
         <p className="text-center text-sm font-semibold text-muted-foreground">{chosen.tagline}</p>
         <Button
-          onClick={() => completeSetup(selected)}
+          onClick={() => concluirConfiguracao(selected)}
           className="h-12 w-full rounded-2xl text-base"
         >
           Começar com {chosen.name.split(",")[0]}!

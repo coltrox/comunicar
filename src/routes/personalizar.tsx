@@ -22,7 +22,7 @@ export const Route = createFileRoute("/personalizar")({
 });
 
 function CustomizePage() {
-  const { mascot, setMascotId, themeColor, setThemeColor, resetProgress, dailyGoal, streak } =
+  const { mascot, definirMascote, themeColor, definirCor, reiniciarProgresso, dailyGoal, streak } =
     useApp();
 
   return (
@@ -46,7 +46,7 @@ function CustomizePage() {
               <motion.button
                 key={m.id}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => setMascotId(m.id)}
+                onClick={() => definirMascote(m.id)}
                 aria-pressed={active}
                 className={
                   "rounded-3xl border-2 p-6 text-center transition-all " +
@@ -90,7 +90,7 @@ function CustomizePage() {
             return (
               <button
                 key={k}
-                onClick={() => setThemeColor(k)}
+                onClick={() => definirCor(k)}
                 aria-pressed={active}
                 className={
                   "big-tap flex flex-col items-center gap-2 rounded-3xl border-2 p-4 transition-all " +
@@ -129,7 +129,7 @@ function CustomizePage() {
         </div>
         <Button
           variant="outline"
-          onClick={resetProgress}
+          onClick={reiniciarProgresso}
           className="mt-4 h-12 rounded-2xl px-5 text-base"
         >
           Zerar estrelinhas agora

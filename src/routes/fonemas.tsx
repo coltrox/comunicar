@@ -35,7 +35,7 @@ const positions: { key: Position | "todas"; label: string }[] = [
 ];
 
 function PhonemesPage() {
-  const { addStars, starsByArea } = useApp();
+  const { adicionarEstrelas, starsByArea } = useApp();
   const [selectedId, setSelectedId] = useState(phonemes[0].id);
   const [position, setPosition] = useState<Position | "todas">("todas");
   const [openMouth, setOpenMouth] = useState(false);
@@ -46,7 +46,7 @@ function PhonemesPage() {
   const acertou = (word: string) => {
     if (acertadas[word]) return;
     setAcertadas((a) => ({ ...a, [word]: true }));
-    addStars("fonemas", 1);
+    adicionarEstrelas("fonemas", 1);
   };
 
   const ouvirEVerificar = (word: string) => {

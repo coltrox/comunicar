@@ -21,7 +21,7 @@ export const Route = createFileRoute("/desafios")({
 });
 
 function ChallengesPage() {
-  const { addStars } = useApp();
+  const { adicionarEstrelas } = useApp();
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [listeningId, setListeningId] = useState<string | null>(null);
   const [semSuporte, setSemSuporte] = useState(false);
@@ -43,7 +43,7 @@ function ChallengesPage() {
       250,
     );
     setDone((d) => ({ ...d, [id]: true }));
-    addStars("desafios", 1);
+    adicionarEstrelas("desafios", 1);
   };
 
   const ouvirEVerificar = (t: (typeof tongueTwisters)[number]) => {

@@ -40,7 +40,7 @@ function gerarOpcoes(palavra: MemoryWord): MemoryWord[] {
 }
 
 function MemoryPage() {
-  const { addStars } = useApp();
+  const { adicionarEstrelas } = useApp();
   const [palavra, setPalavra] = useState<MemoryWord>(() => palavraAleatoria());
   const [opcoes, setOpcoes] = useState<MemoryWord[]>(() => gerarOpcoes(palavra));
   const [falou, setFalou] = useState(false);
@@ -57,7 +57,7 @@ function MemoryPage() {
   useEffect(() => {
     if (!falou || !emojiCerto) return;
     setScore((s) => s + 1);
-    addStars("memoria", 1);
+    adicionarEstrelas("memoria", 1);
     confetti({
       particleCount: 100,
       spread: 75,
