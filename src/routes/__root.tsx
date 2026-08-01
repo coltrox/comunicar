@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AppProvider } from "@/context/AppContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -110,28 +111,30 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-dvh w-full">
-          <AppSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md">
-              <SidebarTrigger className="big-tap" />
-              <div className="min-w-0">
-                <p className="font-display text-lg font-bold leading-none">
-                  Comunicar<span className="ml-1">+</span>
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  Apoio fonoaudiológico interativo
-                </p>
-              </div>
-            </header>
-            <main className="flex-1">
-              <Outlet />
-            </main>
+      <AppProvider>
+        <SidebarProvider>
+          <div className="flex min-h-dvh w-full">
+            <AppSidebar />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md">
+                <SidebarTrigger className="big-tap" />
+                <div className="min-w-0">
+                  <p className="font-display text-lg font-bold leading-none">
+                    Comunicar<span className="ml-1">+</span>
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    Apoio fonoaudiológico interativo
+                  </p>
+                </div>
+              </header>
+              <main className="flex-1">
+                <Outlet />
+              </main>
+            </div>
           </div>
-        </div>
-        <Toaster richColors position="top-center" />
-      </SidebarProvider>
+          <Toaster richColors position="top-center" />
+        </SidebarProvider>
+      </AppProvider>
     </QueryClientProvider>
   );
 }
