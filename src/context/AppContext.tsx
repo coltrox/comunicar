@@ -86,6 +86,7 @@ export const PRACTICE_AREAS = [
   { id: "fonemas", label: "Banco de Fonemas" },
   { id: "memoria", label: "Memória Auditiva" },
   { id: "desafios", label: "Trava-Línguas" },
+  { id: "habilidades", label: "Habilidades Sociais" },
 ] as const;
 
 interface AppContextValue {

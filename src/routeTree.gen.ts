@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VocabularioRouteImport } from './routes/vocabulario'
 import { Route as PersonalizarRouteImport } from './routes/personalizar'
 import { Route as MemoriaRouteImport } from './routes/memoria'
+import { Route as HabilidadesSociaisRouteImport } from './routes/habilidades-sociais'
 import { Route as FonemasRouteImport } from './routes/fonemas'
 import { Route as DesafiosRouteImport } from './routes/desafios'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const PersonalizarRoute = PersonalizarRouteImport.update({
 const MemoriaRoute = MemoriaRouteImport.update({
   id: '/memoria',
   path: '/memoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HabilidadesSociaisRoute = HabilidadesSociaisRouteImport.update({
+  id: '/habilidades-sociais',
+  path: '/habilidades-sociais',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FonemasRoute = FonemasRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/desafios': typeof DesafiosRoute
   '/fonemas': typeof FonemasRoute
+  '/habilidades-sociais': typeof HabilidadesSociaisRoute
   '/memoria': typeof MemoriaRoute
   '/personalizar': typeof PersonalizarRoute
   '/vocabulario': typeof VocabularioRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/desafios': typeof DesafiosRoute
   '/fonemas': typeof FonemasRoute
+  '/habilidades-sociais': typeof HabilidadesSociaisRoute
   '/memoria': typeof MemoriaRoute
   '/personalizar': typeof PersonalizarRoute
   '/vocabulario': typeof VocabularioRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/desafios': typeof DesafiosRoute
   '/fonemas': typeof FonemasRoute
+  '/habilidades-sociais': typeof HabilidadesSociaisRoute
   '/memoria': typeof MemoriaRoute
   '/personalizar': typeof PersonalizarRoute
   '/vocabulario': typeof VocabularioRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/desafios'
     | '/fonemas'
+    | '/habilidades-sociais'
     | '/memoria'
     | '/personalizar'
     | '/vocabulario'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/desafios'
     | '/fonemas'
+    | '/habilidades-sociais'
     | '/memoria'
     | '/personalizar'
     | '/vocabulario'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/desafios'
     | '/fonemas'
+    | '/habilidades-sociais'
     | '/memoria'
     | '/personalizar'
     | '/vocabulario'
@@ -103,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesafiosRoute: typeof DesafiosRoute
   FonemasRoute: typeof FonemasRoute
+  HabilidadesSociaisRoute: typeof HabilidadesSociaisRoute
   MemoriaRoute: typeof MemoriaRoute
   PersonalizarRoute: typeof PersonalizarRoute
   VocabularioRoute: typeof VocabularioRoute
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/memoria'
       fullPath: '/memoria'
       preLoaderRoute: typeof MemoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/habilidades-sociais': {
+      id: '/habilidades-sociais'
+      path: '/habilidades-sociais'
+      fullPath: '/habilidades-sociais'
+      preLoaderRoute: typeof HabilidadesSociaisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fonemas': {
@@ -159,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesafiosRoute: DesafiosRoute,
   FonemasRoute: FonemasRoute,
+  HabilidadesSociaisRoute: HabilidadesSociaisRoute,
   MemoriaRoute: MemoriaRoute,
   PersonalizarRoute: PersonalizarRoute,
   VocabularioRoute: VocabularioRoute,
