@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { Volume2, Mic, Star, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { memoryWords, type MemoryWord } from "@/lib/data/memoryWords";
-import { speak, listenOnce, matchesWord, playSuccess, playRetry } from "@/lib/speech";
+import { falar, ouvir, palavraCorresponde, tocarSucesso, tocarErro } from "@/lib/voz";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useApp } from "@/context/AppContext";
@@ -50,7 +50,7 @@ function MemoryPage() {
   const [semSuporte, setSemSuporte] = useState(false);
 
   useEffect(() => {
-    speak(palavra.word, { rate: 0.8 });
+    falar(palavra.word, { rate: 0.8 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [palavra]);
 
@@ -77,16 +77,16 @@ function MemoryPage() {
 
   const ouvirEFalar = () => {
     if (ouvindo) return;
-    speak(palavra.word, { rate: 0.8 });
+    falar(palavra.word, { rate: 0.8 });
     setOuvindo(true);
-    const started = listenOnce({
+    const started = ouvir({
       onResult: (transcript) => {
-        if (matchesWord(transcript, palavra.word)) {
+        if (palavraCorresponde(transcript, palavra.word)) {
           setFalou(true);
-          playSuccess();
+          tocarSucesso();
           toast("Boa! Falou certinho.", { icon: "🗣️" });
         } else {
-          playRetry();
+          tocarErro();
           toast("Quase! Vamos repetir.", { icon: "💪" });
         }
       },
@@ -102,9 +102,9 @@ function MemoryPage() {
     if (emojiCerto) return;
     if (opcao.id === palavra.id) {
       setEmojiCerto(true);
-      playSuccess();
+      tocarSucesso();
     } else {
-      playRetry();
+      tocarErro();
       toast("Esse não é! Tenta outro.", { icon: "🤔" });
     }
   };
@@ -141,7 +141,7 @@ function MemoryPage() {
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
           <Button
             variant="outline"
-            onClick={() => speak(palavra.word, { rate: 0.8 })}
+            onClick={() => falar(palavra.word, { rate: 0.8 })}
             className="h-12 rounded-2xl px-5 text-base"
           >
             <Volume2 className="mr-2 h-5 w-5" /> Ouvir de novo

@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { motion } from "motion/react";
 import { Volume2, PartyPopper, Mic } from "lucide-react";
 import { tongueTwisters } from "@/lib/data/tongueTwisters";
-import { speak, listenOnce, matchesPhrase, playRetry } from "@/lib/speech";
+import { falar, ouvir, fraseCorresponde, tocarErro } from "@/lib/voz";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/AppContext";
@@ -26,7 +26,7 @@ function ChallengesPage() {
   const [listeningId, setListeningId] = useState<string | null>(null);
   const [semSuporte, setSemSuporte] = useState(false);
 
-  const celebrate = (id: string) => {
+  const comemorar = (id: string) => {
     confetti({
       particleCount: 120,
       spread: 80,
@@ -49,12 +49,12 @@ function ChallengesPage() {
   const ouvirEVerificar = (t: (typeof tongueTwisters)[number]) => {
     if (listeningId) return;
     setListeningId(t.id);
-    const started = listenOnce({
+    const started = ouvir({
       onResult: (transcript) => {
-        if (matchesPhrase(transcript, t.text)) {
-          celebrate(t.id);
+        if (fraseCorresponde(transcript, t.text)) {
+          comemorar(t.id);
         } else {
-          playRetry();
+          tocarErro();
           toast("Quase! Vamos repetir até acertar.", { icon: "💪" });
         }
       },
@@ -109,7 +109,7 @@ function ChallengesPage() {
               <div className="mt-auto flex flex-col gap-2 sm:flex-row">
                 <Button
                   variant="outline"
-                  onClick={() => speak(t.text, { rate: 0.75 })}
+                  onClick={() => falar(t.text, { rate: 0.75 })}
                   className="h-12 flex-1 rounded-2xl text-base"
                 >
                   <Volume2 className="mr-2 h-5 w-5" /> Ouvir

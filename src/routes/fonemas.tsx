@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Volume2, MessageCircleQuestion, Star, Mic } from "lucide-react";
 import { phonemes, type Position } from "@/lib/data/phonemes";
-import { speak, listenOnce, matchesWord, playSuccess, playRetry } from "@/lib/speech";
+import { falar, ouvir, palavraCorresponde, tocarSucesso, tocarErro } from "@/lib/voz";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -52,13 +52,13 @@ function PhonemesPage() {
   const ouvirEVerificar = (word: string) => {
     if (listeningWord) return;
     setListeningWord(word);
-    const started = listenOnce({
+    const started = ouvir({
       onResult: (transcript) => {
-        if (matchesWord(transcript, word)) {
+        if (palavraCorresponde(transcript, word)) {
           acertou(word);
-          playSuccess();
+          tocarSucesso();
         } else {
-          playRetry();
+          tocarErro();
           toast("Quase! Tente falar de novo.", { icon: "💪" });
         }
       },
@@ -186,7 +186,7 @@ function PhonemesPage() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => speak(w.word)}
+                  onClick={() => falar(w.word)}
                   className="h-12 flex-1 rounded-2xl text-base"
                   style={{ background: selected.color, color: "white" }}
                 >
@@ -244,7 +244,7 @@ function PhonemesPage() {
           </p>
           <Button
             onClick={() =>
-              speak(selected.letter + "a, " + selected.letter + "e, " + selected.letter + "i", {
+              falar(selected.letter + "a, " + selected.letter + "e, " + selected.letter + "i", {
                 rate: 0.7,
               })
             }

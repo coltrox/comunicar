@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Volume2 } from "lucide-react";
 import { categories, type Category, type DeepItem } from "@/lib/data/vocabulary";
-import { speak } from "@/lib/speech";
+import { falar } from "@/lib/voz";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -102,7 +102,7 @@ function VocabularyPage() {
                   <p className="font-display text-2xl font-bold">{it.name}</p>
                   <div className="flex gap-2">
                     <Button
-                      onClick={() => speak(it.name)}
+                      onClick={() => falar(it.name)}
                       variant="outline"
                       className="h-12 flex-1 rounded-2xl text-base"
                     >
@@ -142,7 +142,7 @@ function VocabularyPage() {
                 </p>
                 <p className="font-display text-3xl font-bold">{item.name}</p>
                 <Button
-                  onClick={() => speak(item.name)}
+                  onClick={() => falar(item.name)}
                   className="mt-3 h-11 rounded-2xl"
                   style={{ background: category.color, color: "white" }}
                 >
@@ -158,7 +158,7 @@ function VocabularyPage() {
                   key={p.name}
                   whileTap={{ scale: 0.96 }}
                   whileHover={{ y: -2 }}
-                  onClick={() => speak(p.name)}
+                  onClick={() => falar(p.name)}
                   className="flex items-center gap-4 rounded-3xl border-2 border-border bg-card p-5 text-left transition-colors hover:border-primary"
                 >
                   <div

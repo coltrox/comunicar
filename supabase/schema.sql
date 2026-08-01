@@ -13,7 +13,7 @@ create table if not exists progresso (
   perfil_id uuid primary key default gen_random_uuid(),
   mascote_id text not null default 'leo',
   estrelas_por_area jsonb not null default '{}'::jsonb,
-  streak integer not null default 0,
+  sequencia integer not null default 0,
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now()
 );

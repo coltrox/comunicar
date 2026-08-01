@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { motion } from "motion/react";
 import { Volume2, PartyPopper, Mic } from "lucide-react";
 import { socialPhrases } from "@/lib/data/socialSkills";
-import { speak, listenOnce, matchesPhrase, playRetry } from "@/lib/speech";
+import { falar, ouvir, fraseCorresponde, tocarErro } from "@/lib/voz";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/AppContext";
@@ -26,7 +26,7 @@ function SocialSkillsPage() {
   const [listeningId, setListeningId] = useState<string | null>(null);
   const [semSuporte, setSemSuporte] = useState(false);
 
-  const celebrate = (id: string) => {
+  const comemorar = (id: string) => {
     confetti({
       particleCount: 120,
       spread: 80,
@@ -49,12 +49,12 @@ function SocialSkillsPage() {
   const ouvirEVerificar = (p: (typeof socialPhrases)[number]) => {
     if (listeningId) return;
     setListeningId(p.id);
-    const started = listenOnce({
+    const started = ouvir({
       onResult: (transcript) => {
-        if (matchesPhrase(transcript, p.text)) {
-          celebrate(p.id);
+        if (fraseCorresponde(transcript, p.text)) {
+          comemorar(p.id);
         } else {
-          playRetry();
+          tocarErro();
           toast("Quase! Vamos repetir até acertar.", { icon: "💪" });
         }
       },
@@ -111,7 +111,7 @@ function SocialSkillsPage() {
               <div className="mt-auto flex flex-col gap-2 sm:flex-row">
                 <Button
                   variant="outline"
-                  onClick={() => speak(p.text, { rate: 0.75 })}
+                  onClick={() => falar(p.text, { rate: 0.75 })}
                   className="h-12 flex-1 rounded-2xl text-base"
                 >
                   <Volume2 className="mr-2 h-5 w-5" /> Ouvir
