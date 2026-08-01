@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Volume2, Mic, Star } from "lucide-react";
+import { motion } from "motion/react";
+import { Volume2, Mic, Star, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { memoryWords, type MemoryWord } from "@/lib/data/memoryWords";
 import { speak, listenOnce, matchesWord, playSuccess, playRetry } from "@/lib/speech";
@@ -43,9 +43,9 @@ function MemoryPage() {
   const { addStars } = useApp();
   const [palavra, setPalavra] = useState<MemoryWord>(() => palavraAleatoria());
   const [opcoes, setOpcoes] = useState<MemoryWord[]>(() => gerarOpcoes(palavra));
-  const [repetiu, setRepetiu] = useState(false);
+  const [falou, setFalou] = useState(false);
+  const [emojiCerto, setEmojiCerto] = useState(false);
   const [ouvindo, setOuvindo] = useState(false);
-  const [acertou, setAcertou] = useState(false);
   const [score, setScore] = useState(0);
   const [semSuporte, setSemSuporte] = useState(false);
 
@@ -54,13 +54,26 @@ function MemoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [palavra]);
 
-  const novaRodada = () => {
-    const proxima = palavraAleatoria(palavra.id);
-    setPalavra(proxima);
-    setOpcoes(gerarOpcoes(proxima));
-    setRepetiu(false);
-    setAcertou(false);
-  };
+  useEffect(() => {
+    if (!falou || !emojiCerto) return;
+    setScore((s) => s + 1);
+    addStars("memoria", 1);
+    confetti({
+      particleCount: 100,
+      spread: 75,
+      origin: { y: 0.7 },
+      colors: ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#c77dff"],
+    });
+    const t = setTimeout(() => {
+      const proxima = palavraAleatoria(palavra.id);
+      setPalavra(proxima);
+      setOpcoes(gerarOpcoes(proxima));
+      setFalou(false);
+      setEmojiCerto(false);
+    }, 1100);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [falou, emojiCerto]);
 
   const ouvirEFalar = () => {
     if (ouvindo) return;
@@ -69,9 +82,9 @@ function MemoryPage() {
     const started = listenOnce({
       onResult: (transcript) => {
         if (matchesWord(transcript, palavra.word)) {
-          setRepetiu(true);
+          setFalou(true);
           playSuccess();
-          toast("Boa! Agora toque no emoji certo.", { icon: "👉" });
+          toast("Boa! Falou certinho.", { icon: "🗣️" });
         } else {
           playRetry();
           toast("Quase! Vamos repetir.", { icon: "💪" });
@@ -86,18 +99,10 @@ function MemoryPage() {
   };
 
   const escolherEmoji = (opcao: MemoryWord) => {
-    if (!repetiu || acertou) return;
+    if (emojiCerto) return;
     if (opcao.id === palavra.id) {
-      setAcertou(true);
-      setScore((s) => s + 1);
-      addStars("memoria", 1);
-      confetti({
-        particleCount: 100,
-        spread: 75,
-        origin: { y: 0.7 },
-        colors: ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#c77dff"],
-      });
-      setTimeout(novaRodada, 1100);
+      setEmojiCerto(true);
+      playSuccess();
     } else {
       playRetry();
       toast("Esse não é! Tenta outro.", { icon: "🤔" });
@@ -110,7 +115,8 @@ function MemoryPage() {
         <div>
           <h1 className="text-3xl font-bold sm:text-4xl">Memória Auditiva</h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            Ouça a palavra, repita em voz alta e toque no emoji certo.
+            Ouça a palavra, repita em voz alta e toque no emoji certo. Pode fazer nessa ordem ou na
+            outra!
           </p>
           {semSuporte && (
             <p className="mt-2 rounded-xl bg-warm/30 px-3 py-2 text-sm">
@@ -132,7 +138,7 @@ function MemoryPage() {
         </p>
         <p className="mt-2 font-display text-4xl font-bold tracking-wide">{palavra.word}</p>
 
-        <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
           <Button
             variant="outline"
             onClick={() => speak(palavra.word, { rate: 0.8 })}
@@ -143,15 +149,16 @@ function MemoryPage() {
           <Button
             onClick={ouvirEFalar}
             disabled={ouvindo}
+            variant={falou ? "secondary" : "default"}
             className="h-12 rounded-2xl px-5 text-base"
           >
             {ouvindo ? (
               <>
                 <Mic className="mr-2 h-5 w-5 animate-pulse text-red-500" /> Ouvindo...
               </>
-            ) : repetiu ? (
+            ) : falou ? (
               <>
-                <Mic className="mr-2 h-5 w-5" /> Falar de novo
+                <Check className="mr-2 h-5 w-5" /> Falou certo!
               </>
             ) : (
               <>
@@ -161,39 +168,31 @@ function MemoryPage() {
           </Button>
         </div>
 
-        <AnimatePresence>
-          {repetiu && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6"
-            >
-              <p className="mb-3 text-base font-semibold">Qual emoji combina com a palavra?</p>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {opcoes.map((op) => {
-                  const correta = acertou && op.id === palavra.id;
-                  return (
-                    <motion.button
-                      key={op.id}
-                      whileTap={{ scale: 0.94 }}
-                      onClick={() => escolherEmoji(op)}
-                      disabled={acertou}
-                      className={
-                        "big-tap flex h-24 items-center justify-center rounded-3xl border-2 text-5xl transition-all " +
-                        (correta
-                          ? "border-success bg-success/15"
-                          : "border-border bg-background hover:border-primary disabled:opacity-60")
-                      }
-                      aria-label={op.word}
-                    >
-                      {op.emoji}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <p className="mt-6 mb-3 text-base font-semibold">
+          {emojiCerto ? "✅ Emoji certo!" : "Qual emoji combina com a palavra?"}
+        </p>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {opcoes.map((op) => {
+            const correta = emojiCerto && op.id === palavra.id;
+            return (
+              <motion.button
+                key={op.id}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => escolherEmoji(op)}
+                disabled={emojiCerto}
+                className={
+                  "big-tap flex h-24 items-center justify-center rounded-3xl border-2 text-5xl transition-all " +
+                  (correta
+                    ? "border-success bg-success/15"
+                    : "border-border bg-background hover:border-primary disabled:opacity-60")
+                }
+                aria-label={op.word}
+              >
+                {op.emoji}
+              </motion.button>
+            );
+          })}
+        </div>
       </Card>
     </div>
   );
