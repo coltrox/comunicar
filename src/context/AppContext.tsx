@@ -110,9 +110,9 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const STARS_STORAGE_KEY = "comunicando-plus:stars";
-const DAILY_STORAGE_KEY = "comunicando-plus:daily";
-const MASCOT_STORAGE_KEY = "comunicando-plus:mascot";
+const STARS_STORAGE_KEY = "comunicar-plus:stars";
+const DAILY_STORAGE_KEY = "comunicar-plus:daily";
+const MASCOT_STORAGE_KEY = "comunicar-plus:mascot";
 
 interface DailyProgress {
   date: string;
