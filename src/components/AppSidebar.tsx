@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Mic, BookOpen, Brain, Sparkles, Users, Settings } from "lucide-react";
+import { Home, Mic, BookOpen, Brain, Sparkles, Users, Settings, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -26,7 +27,7 @@ const items = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { mascot } = useApp();
+  const { mascot, session, sair } = useApp();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -75,6 +76,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={sair} tooltip="Sair" className="h-12 text-base">
+              <LogOut className="!h-5 !w-5" />
+              <span className="truncate">{session?.user.email ?? "Sair"}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

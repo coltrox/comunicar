@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export type MascotId = "leo" | "nina" | "tito";
 export type ThemeColor = "teal" | "coral" | "violet" | "sunshine" | "forest";
@@ -106,6 +108,12 @@ interface AppContextValue {
   // configuração inicial de mascote/meta
   needsSetup: boolean;
   concluirConfiguracao: (id: MascotId) => void;
+  // login (Supabase Auth) — progresso só sincroniza com a nuvem quando logado
+  session: Session | null;
+  authCarregando: boolean;
+  entrar: (email: string, senha: string) => Promise<string | null>;
+  cadastrar: (email: string, senha: string) => Promise<string | null>;
+  sair: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -163,6 +171,8 @@ function carregarMascoteId(): MascotId | null {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [authCarregando, setAuthCarregando] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(() => carregarMascoteId() === null);
   const [mascotId, setMascotId] = useState<MascotId>(() => carregarMascoteId() ?? "leo");
   const [themeColor, setThemeColor] = useState<ThemeColor>("teal");
@@ -212,6 +222,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.style.setProperty("--ring", c.ring);
   }, [themeColor]);
 
+  // Observa o login: pega a sessão atual e escuta login/logout.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthCarregando(false);
+    });
+    const { data: assinatura } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
+      setSession(novaSessao);
+    });
+    return () => assinatura.subscription.unsubscribe();
+  }, []);
+
+  // Ao logar, busca o progresso salvo na nuvem (ou cria a linha na primeira vez).
+  useEffect(() => {
+    if (!session) return;
+    let cancelado = false;
+    supabase
+      .from("progresso")
+      .select("mascote_id, estrelas_por_area, sequencia")
+      .eq("usuario_id", session.user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelado || error) return;
+        if (data) {
+          if (mascots.some((m) => m.id === data.mascote_id)) {
+            setMascotId(data.mascote_id as MascotId);
+          }
+          setStarsByArea((data.estrelas_por_area as Record<string, number>) ?? {});
+          setNeedsSetup(false);
+        } else {
+          supabase.from("progresso").upsert({ usuario_id: session.user.id }).then();
+        }
+      });
+    return () => {
+      cancelado = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  // Enquanto logado, todo progresso novo é salvo também na nuvem (best-effort).
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from("progresso")
+      .upsert({
+        usuario_id: session.user.id,
+        mascote_id: mascotId,
+        estrelas_por_area: starsByArea,
+        sequencia: daily.streak,
+        atualizado_em: new Date().toISOString(),
+      })
+      .then(({ error }) => {
+        if (error) console.error("Falha ao sincronizar progresso:", error.message);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, mascotId, starsByArea, daily.streak]);
+
   const mascot = mascots.find((m) => m.id === mascotId)!;
 
   const value = useMemo<AppContextValue>(
@@ -258,8 +325,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setNeedsSetup(false);
         setDaily(diarioNovo(dataDeHoje()));
       },
+      session,
+      authCarregando,
+      entrar: async (email, senha) => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        return error?.message ?? null;
+      },
+      cadastrar: async (email, senha) => {
+        const { error } = await supabase.auth.signUp({ email, password: senha });
+        return error?.message ?? null;
+      },
+      sair: async () => {
+        await supabase.auth.signOut();
+      },
     }),
-    [mascot, themeColor, starsByArea, daily, needsSetup],
+    [mascot, themeColor, starsByArea, daily, needsSetup, session, authCarregando],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
