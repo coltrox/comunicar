@@ -24,7 +24,7 @@ O **Comunicar+** é uma plataforma focada em assistência à fala e exercícios 
 
 A aplicação está implantada e disponível diretamente no navegador através da **Vercel**:
 
-> **Link de Acesso:** [https://comunicar-plus.vercel.app](https://www.google.com/search?q=https://comunicar-plus.vercel.app) *(substitua pela sua URL final)*
+> **Link de Acesso:** [https://comunicar-plus.vercel.app](https://www.google.com/search?q=https://comunicar-mais.vercel.app) *(substitua pela sua URL final)*
 
 ---
 
