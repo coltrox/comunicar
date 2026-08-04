@@ -1,9 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Mic, BookOpen, Brain, Sparkles, Users, Settings, LogOut } from "lucide-react";
+import { Home, Mic, BookOpen, Brain, Sparkles, Users, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -13,7 +12,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useApp } from "@/context/AppContext";
 
 const items = [
   { title: "Início", url: "/", icon: Home },
@@ -27,7 +25,6 @@ const items = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { mascot, session, sair } = useApp();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -35,17 +32,16 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border p-0">
         <div className="flex items-center gap-3 overflow-hidden px-3 py-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <div
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-xl"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-xl font-bold"
             style={{ background: "var(--primary-soft)" }}
             aria-hidden="true"
           >
-            {mascot.emoji}
+            🗣️
           </div>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate font-display text-lg font-bold leading-tight">
               Comunicar<span className="ml-1">+</span>
             </p>
-            <p className="truncate text-xs text-muted-foreground">{mascot.name}</p>
           </div>
         </div>
       </SidebarHeader>
@@ -76,16 +72,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={sair} tooltip="Sair" className="h-12 text-base">
-              <LogOut className="!h-5 !w-5" />
-              <span className="truncate">{session?.user.email ?? "Sair"}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }

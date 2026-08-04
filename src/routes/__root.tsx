@@ -119,14 +119,12 @@ function RootComponent() {
 }
 
 function AppShell() {
-  const { session, authCarregando } = useApp();
+  const { authCarregando } = useApp();
 
   if (authCarregando) {
-    return <div className="grid min-h-dvh place-items-center text-muted-foreground">Carregando…</div>;
-  }
-
-  if (!session) {
-    return <TelaEntrar />;
+    return (
+      <div className="grid min-h-dvh place-items-center text-muted-foreground">Carregando…</div>
+    );
   }
 
   return (
